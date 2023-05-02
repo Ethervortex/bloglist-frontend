@@ -1,25 +1,26 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Blog from './components/Blog'
 import LoginForm from './components/LoginForm'
 import CreateForm from './components/CreateForm'
 import Notif from './components/Notif'
+import Togglable from './components/Togglable'
 import blogService from './services/blogs'
 import loginService from './services/login'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
-  const [newTitle, setNewTitle] = useState('')
-  const [newAuthor, setNewAuthor] = useState('')
-  const [newUrl, setNewUrl] = useState('')
   const [info, setInfo] = useState({ message: null })
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
+  const blogFormRef = useRef()
 
   useEffect(() => {
-    blogService.getAll().then(blogs =>
-      setBlogs( blogs )
-    )
+    blogService.getAll().then((blogs) => {
+      // Tehtävä 5.10
+      const sorted = blogs.sort((a, b) => b.likes - a.likes)
+      setBlogs(sorted)
+    })
   }, [])
 
   // Tehtävä 5.2
@@ -62,31 +63,29 @@ const App = () => {
     setUser(null)
   }
 
-  const handleTitle = (event) => {
-    setNewTitle(event.target.value)
+  const handleLikes = async (blog) => {
+    const updatedB = { ...blog, likes: blog.likes + 1 }
+    await blogService.update(updatedB)
+    setBlogs(
+      blogs.map((bl) => (bl.id === updatedB.id ? updatedB : bl))
+    )
   }
 
-  const handleAuthor = (event) => {
-    setNewAuthor(event.target.value)
-  }
-
-  const handleUrl = (event) => {
-    setNewUrl(event.target.value)
-  }
-
-  const addBlog = (event) => {
-    event.preventDefault()
-    const blogObject = {
-      title: newTitle,
-      author: newAuthor,
-      url: newUrl,
+  // Tehtävä 5.11
+  const handleRemove = async (blog) => {
+    if (window.confirm(`Remove blog ${blog.title} by ${blog.author}?`)) {
+      await blogService.remove(blog.id)
+      setBlogs(blogs.filter((b) => b.id !== blog.id))
+      notify(`${blog.title} by ${blog.author} has been removed`)
     }
+  }
+
+  const addBlog = (blogObject) => {
+    blogFormRef.current.toggleVisibility()
     blogService.create(blogObject).then((returnedBlog) => {
+      returnedBlog.user = user // Tehtävä 5.8
       setBlogs(blogs.concat(returnedBlog))
-      notify(`A new blog ${newTitle} by ${newAuthor} added`)
-      setNewTitle('')
-      setNewAuthor('')
-      setNewUrl('')
+      notify(`A new blog ${returnedBlog.title} by ${returnedBlog.author} added`)
     })
       .catch((error) => {
         console.error('Error creating blog:', error)
@@ -115,18 +114,11 @@ const App = () => {
       <Notif info={info} />
       <p>{user.name} logged in<button onClick={handleLogout}>logout</button></p>
       <b></b>
-      <h2>Create new</h2>
-      <CreateForm
-        addBlog={addBlog}
-        newTitle={newTitle}
-        handleTitle={handleTitle}
-        newAuthor={newAuthor}
-        handleAuthor={handleAuthor}
-        newUrl={newUrl}
-        handleUrl={handleUrl}
-      />
+      <Togglable buttonLabel="create new blog" ref={blogFormRef}>
+        <CreateForm createBlog={addBlog} />
+      </Togglable>
       {blogs.map(blog =>
-        <Blog key={blog.id} blog={blog} />
+        <Blog key={blog.id} blog={blog} handleLikes={handleLikes} handleRemove={handleRemove} user={user}/>
       )}
     </div>
   )
