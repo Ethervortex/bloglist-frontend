@@ -34,7 +34,7 @@ const CreateForm = ({ createBlog }) => {
       <div>title: <input type="text" value={newTitle} onChange={handleTitle} id='title-input' /></div>
       <div>author: <input type="text" value={newAuthor} onChange={handleAuthor} id='author-input' /></div>
       <div>url: <input type="text" value={newUrl} onChange={handleUrl} id='url-input' /></div>
-      <div><button type="submit">create</button></div>
+      <div><button type="submit" id='create-button'>create</button></div>
     </form>
   )
 }
