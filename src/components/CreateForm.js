@@ -29,11 +29,11 @@ const CreateForm = ({ createBlog }) => {
     setNewUrl('')
   }
   return (
-    <form onSubmit={addBlog}>
+    <form onSubmit={addBlog} data-testid="create-form">
       <h2>Create new</h2>
-      <div>title: <input type="text" value={newTitle} onChange={handleTitle}/></div>
-      <div>author: <input type="text" value={newAuthor} onChange={handleAuthor}/></div>
-      <div>url: <input type="text" value={newUrl} onChange={handleUrl}/></div>
+      <div>title: <input type="text" value={newTitle} onChange={handleTitle} id='title-input' /></div>
+      <div>author: <input type="text" value={newAuthor} onChange={handleAuthor} id='author-input' /></div>
+      <div>url: <input type="text" value={newUrl} onChange={handleUrl} id='url-input' /></div>
       <div><button type="submit">create</button></div>
     </form>
   )
